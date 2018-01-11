@@ -3,6 +3,8 @@ import collections
 import myo
 import threading
 import time
+import numpy as np
+import pickle
 
 class MyListener(myo.DeviceListener):
 
@@ -33,15 +35,43 @@ class MyListener(myo.DeviceListener):
 myo.init()
 hub = myo.Hub()
 
+data={'Myo':[],"Obs":[]}
+path1="RevData/"
+
 try:
   listener = MyListener()
   hub.run(200, listener)
 
-  while True:
+  count = 0
 
-    print(listener.get_emg_data())
-    print(listener.get_orient_data())
+  while True:
+    
+    if count < 5:
+      data['Myo'].append(listener.get_emg_data())
+      data['Obs'].append(listener.get_orient_data())
+      count = count + 1
+    else:
+      print('5 words!')
+      #print(data['Myo'][0])
+      print(data['Obs'])
       
+      #timestamp=datetime.strftime(datetime.now(),"%Y%m%d%H%M%S") 
+      timestamp = time.time()
+      file=open(path1+"MyoData%s"%timestamp,'w')
+      '''
+      for i in np.arange(len(data['Obs'])):        
+        #file.write("Myo: %d" % data['Myo'][i])
+        file.write("Obs: ")
+        for j in np.arange(len(data['Obs'][i])):
+          file.write("%d" % data['Obs'][i][j])
+        file.write("\n")
+      '''
+      pickle.dump(data['Myo'] ,file)
+      pickle.dump(data['Obs'] ,file)
+      data={'Myo':[],"Obs":[]}
+      file.close()
+      count = 0
+     
     time.sleep(1.0)
 finally:
   hub.shutdown()
