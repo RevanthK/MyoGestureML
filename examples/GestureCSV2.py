@@ -36,22 +36,20 @@ myo.init()
 hub = myo.Hub()
 
 data={'Myo':[],"Obs":[]}
-path1="RevData/"
+path1="RevData/bottleCorrect/"
 
 try:
-  listener = MyListener()
-  hub.run(200, listener)
-
   count = 0
-
+  listener = MyListener()
+  hub.run(1000/20, listener)
   while True:
     
-    if count < 5:
+    if count < 1000:
       data['Myo'].append(listener.get_emg_data())
       data['Obs'].append(listener.get_orient_data())
       count = count + 1
     else:
-      print('10 words!')
+      print('10 seconds!')
 
       df = pd.DataFrame(data = data['Obs'])
 
@@ -63,9 +61,7 @@ try:
           for j in i:      
             myoD.append(j[1])
 
-
-
-      print(myoD)
+      
       df2 = pd.DataFrame(data = myoD)
       df2[df2.columns] = df2[df2.columns].astype(int)
 
@@ -76,14 +72,16 @@ try:
       array = df.values
       array2 = df2.values.astype(int)
 
+      #print(array)
 
-      np.savetxt(path1+"ObsData%s.csv"%timestamp, array, delimiter=",",  fmt='%d')
+
+      np.savetxt(path1+"ObsData%s.csv"%timestamp, array, delimiter=",",  fmt='%f')
       np.savetxt(path1+"MyoData%s.csv"%timestamp, array2, delimiter=",",  fmt='%d')
 
       data={'Myo':[],"Obs":[]}
       count = 0
      
-    time.sleep(1.0)
+    time.sleep(.01)
 finally:
   hub.shutdown()
   

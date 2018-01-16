@@ -1,25 +1,56 @@
-import matplotlib.pyplot as plt
-import datetime
 import numpy as np
-
-x = np.array([datetime.datetime(2013, 9, 28, i, 0) for i in range(24)])
-y = np.random.randint(100, size=x.shape)
-
-
-
-plt.xticks(rotation=90)
-
-ax = plt.subplot(111)
-pos1 = ax.get_position() # get the original position 
-pos2 = [pos1.x0 + 0.3, pos1.y0 + 0.3,  pos1.width / 2.0, pos1.height / 2.0] 
-ax.set_position(pos2) # set a new position
-
-#plt.colorbar(image)  # make colorbar
-#plt.xlim(amin, amax)
-#plt.ylim(bmin, bmax)
+import pandas as pd
+import seaborn as sns
+import matplotlib.pyplot as plt
 
 
-plt.xlabel(r'$Time (secs)$', fontsize=18)
-plt.ylabel(r'$Myo\ Units$', fontsize=18)
-plt.plot(x,y)
+df = pd.read_csv('RevData/sample/MyoData1515714132.65.csv')
+
+index = []
+
+
+for a in range(len(df.values)):
+	index.append(a)
+
+df.columns = ['Unit 1','Unit 2','Unit 3','Unit 4','Unit 5','Unit 6','Unit 7','Unit 8']
+
+df['index'] = index
+
+
+
+sns.set(style="white", rc={"axes.facecolor": (0, 0, 0, 0)})
+
+# Create the data
+rs = np.random.RandomState(1979)
+x = df['Unit 1']
+g = np.tile(list("1"), len(df['Unit 1']))
+df = pd.DataFrame(dict(x=x, g=g))
+m = df.g.map(ord)
+df["x"] += m
+
+# Initialize the FacetGrid object
+pal = sns.cubehelix_palette(10, rot=-.25, light=.7)
+g = sns.FacetGrid(df, row="g", hue="g", aspect=15, size=.5, palette=pal)
+
+# Draw the densities in a few steps
+g.map(sns.kdeplot, "x", clip_on=False, shade=True, alpha=1, lw=1.5, bw=.2)
+g.map(sns.kdeplot, "x", clip_on=False, color="w", lw=2, bw=.2)
+g.map(plt.axhline, y=0, lw=2, clip_on=False)
+
+# Define and use a simple function to label the plot in axes coordinates
+def label(x, color, label):
+    ax = plt.gca()
+    ax.text(0, .2, label, fontweight="bold", color=color, 
+            ha="left", va="center", transform=ax.transAxes)
+
+g.map(label, "x")
+
+# Set the subplots to overlap
+g.fig.subplots_adjust(hspace=-.25)
+
+# Remove axes details that don't play will with overlap
+g.set_titles("")
+g.set(yticks=[])
+g.despine(bottom=True, left=True)
+
 plt.show()
